@@ -13,7 +13,7 @@
 
 using namespace std;
 
-int NUM_BOXES = 10000;
+int NUM_BOXES = 1000;
 int MIN_RADIUS = 50;
 int MAX_RADIUS = 400; // will also be the radius of the display in pixels
 int MAX_DIMENTIONS = 40;
