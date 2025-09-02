@@ -23,7 +23,7 @@ float calculateAngle(float corner[]) {
 void calculate_box_occlusion(Box box, array<float, 2> &minmax) {
 	minmax[0] = 360;// {min, max}
 	minmax[1] = 0;
-	for (int j = 0; j < 4; j++) {
+	for (int j = 0; j < 4; j++) { //o1
 		float angle = calculateAngle(box.corners[j]);
 		if (angle < minmax[0]) {
 			minmax[0] = angle;
