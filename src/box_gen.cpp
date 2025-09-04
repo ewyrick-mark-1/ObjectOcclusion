@@ -139,7 +139,7 @@ vector<Box> generate_boxes(int total_boxes, int min_radius, int max_radius, int 
     // radius: from 1 to max_radius
     uniform_int_distribution<int> dist_radius(min_radius, max_radius);
     // box length/width: from 1 to max_box_bounds
-    uniform_int_distribution<int> dist_bounds(1, max_box_bounds);
+    uniform_int_distribution<int> dist_bounds(30, max_box_bounds); // 30 is arbitrary. should make it an input.
     // angles: from 0 to 359 degrees
     uniform_int_distribution<int> dist_angle(0, 359);
 

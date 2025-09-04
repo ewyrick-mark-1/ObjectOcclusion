@@ -20,7 +20,7 @@ float calculateAngle(float corner[]) {
 	return angle;
 }
 
-void calculate_box_occlusion(Box box, array<float, 2> &minmax) {
+void calculate_minmax(Box box, array<float, 2> &minmax) {
 	minmax[0] = 360;// {min, max}
 	minmax[1] = 0;
 	for (int j = 0; j < 4; j++) { //o1
@@ -37,47 +37,93 @@ void calculate_box_occlusion(Box box, array<float, 2> &minmax) {
 
 }
 
-float calculate_occlusion(const std::vector<Box> boxes) {
-    vector<array<float,2>> non_visible_range;
-
-    for (int i = 0; i < boxes.size(); i++) {
-        std::array<float,2> occluded;
-        calculate_box_occlusion(boxes[i], occluded);
-
-        if (non_visible_range.empty()) {
-            non_visible_range.push_back(occluded);
-            continue;
-        }
-
-        bool merged = false;
-        for (int j = 0; j < non_visible_range.size(); j++) {
-            // overlap
-            if (occluded[0] <= non_visible_range[j][1] && occluded[1] >= non_visible_range[j][0]) {
-                non_visible_range[j][0] = std::min(non_visible_range[j][0], occluded[0]);
-                non_visible_range[j][1] = std::max(non_visible_range[j][1], occluded[1]);
-                merged = true;
-                break;  // merged, stop inner loop
-            }
-            // comes before current range
-            else if (occluded[1] < non_visible_range[j][0]) {
-                non_visible_range.insert(non_visible_range.begin() + j, occluded);
-                merged = true;
-                break;
-            }
-        }
-
-        if (!merged) {
-            non_visible_range.push_back(occluded);
-        }
+void merge(vector<array<float, 2>>& box_angles, int l, int m, int r){//basic merge function
+    int left_size = m - l +1;
+    int right_size = r - m;
+    //temps
+    vector<array<float, 2>> L(left_size);
+    vector<array<float, 2>> R(right_size);
+    
+    //copy temps
+    for(int i = 0; i < left_size; i++){
+        L[i] = box_angles[l + i];
+    }
+    for(int i = 0; i < right_size; i++){
+        R[i] = box_angles[m + 1 + i];
     }
 
-    // compute total occlusion
-    float total_occlusion = 0;
-    for (int i = 0; i < non_visible_range.size(); i++) {
-        total_occlusion += non_visible_range[i][1] - non_visible_range[i][0];
+    //do the actual merging
+    int i = 0;
+    int j = 0;
+    int k = l;
+    while(i < left_size && j < right_size){
+        if(L[i][0] <= R[j][0]){
+            box_angles[k++] = L[i++];
+        } else {
+            box_angles[k++] = R[j++];
+        }
+
     }
-    cout << "total occlusion: " <<total_occlusion << "\n";
-    return total_occlusion;
+    //take care of the rest
+    while (i < left_size){
+        box_angles[k++] = L[i++];
+    }
+    while (j < right_size){
+        box_angles[k++] = R[j++];
+    }
+
 }
+
+void mergesort(vector<array<float, 2>>& box_angles, int left, int right){
+    if (left < right) {
+        int mid = left + (right - left) / 2;
+
+        mergesort(box_angles, left, mid);       // Sort first half
+        mergesort(box_angles, mid + 1, right); // Sort second half
+
+        merge(box_angles, left, mid, right);   // Merge sorted halves
+    }
+
+}
+void print_overlap(vector<array<float, 2>>& list){
+    cout <<"overlap range: ";
+    for(int i = 0; i < list.size(); i++){
+        cout<<"["<<list[i][0]<<", "<<list[i][1]<<"], ";
+    }
+    cout <<"\n";
+}
+vector<array<float, 2>> calculate_occlusion( vector<Box>& boxes) {
+    //get vector of min and max angles
+    vector<array<float, 2>> minmax(boxes.size());
+    for(int i = 0; i < boxes.size(); i++){
+        calculate_minmax(boxes[i], minmax[i]);
+    }
+    //sort by min angle
+    mergesort(minmax, 0, boxes.size() - 1);
+    print_overlap(minmax);
+    //move through linerally and parse into visible / non visible ranges
+    vector<array<float, 2>> overlap;
+    float current_min = minmax[0][0];
+    float current_max = minmax[0][1];
+    for(int i = 1; i < minmax.size(); i++){
+        if(minmax[i][0] < current_max){ //overlap
+            
+            if(minmax[i][1] > current_max){ //partial overlap
+                overlap.push_back({minmax[i][0], current_max}); // logs overlap
+                current_min = current_max;
+                current_max = minmax[i][1];
+            } else { //full overlap
+                overlap.push_back({minmax[i][0], minmax[i][1]}); // log overlap
+                current_min = minmax[i][1];//adjust lower bound to prevent double count
+            }
+
+        } else { // no overlap, adjust bounds
+            current_min = minmax[i][0];
+            current_max = minmax[i][1];
+        }
+    }
+    print_overlap(overlap);
+    return overlap;
+}    
 
 

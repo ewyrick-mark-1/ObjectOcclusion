@@ -13,9 +13,13 @@
 
 
 using namespace sf;
+using namespace std;
 
-void draw_visuals(vector<Box> boxes, unsigned int radius, int max_dimention) {//rm max dimention if I dont get around to fixing window clipping
+void draw_visuals(const vector<Box> boxes, const vector<array<float, 2>>& occluded, unsigned int radius, int max_dimention) {//rm max dimention if I dont get around to fixing window clipping
     float pi = 3.1415;
+
+    ContextSettings settings;
+    settings.antiAliasingLevel = 16;
     // create the window
     RenderWindow window(sf::VideoMode({ radius*2, radius*2}), "Object Occlusion");
 
@@ -46,6 +50,25 @@ void draw_visuals(vector<Box> boxes, unsigned int radius, int max_dimention) {//
         test.setFillColor(sf::Color(250, 0, 0));
         window.draw(test);
 
+        //draw angles
+
+        for(int i = 0; i < occluded.size(); i++){
+            ConvexShape shape;
+            shape.setPointCount(3);
+            float x1 = (2*radius)*cos(occluded[i][0] * (pi/180));
+            float y1 = (2*radius)*sin(occluded[i][0] * (pi/180));
+            float x2 = (2*radius)*cos(occluded[i][1] * (pi/180));
+            float y2 = (2*radius)*sin(occluded[i][1] * (pi/180));
+            shape.setPoint(0, {(float)radius, (float)radius});
+            shape.setPoint(1, {x1 + radius, -y1 + radius});
+            shape.setPoint(2, {x2 + radius, -y2 + radius});
+
+            shape.setFillColor(sf::Color(250, 0, 0));
+
+            window.draw(shape);
+        }
+
+        //draw boxes
         for (int i = 0; i < boxes.size(); i++) {
             ConvexShape shape;
             shape.setPointCount(4);
