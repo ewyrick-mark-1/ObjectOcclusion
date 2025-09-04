@@ -41,14 +41,11 @@ void draw_visuals(const vector<Box> boxes, const vector<array<float, 2>>& occlud
         window.draw(circle);
 
         CircleShape center(5);
+        center.setOrigin({5, 5});
         center.setPosition({ (float)radius, (float)radius });
         center.setFillColor(sf::Color(250, 0, 0));
         window.draw(center);
 
-        CircleShape test(5);
-        //center.setPosition({ (float)radius, (float)radius });
-        test.setFillColor(sf::Color(250, 0, 0));
-        window.draw(test);
 
         //draw angles
 

@@ -39,4 +39,4 @@ bool checkIntersect(Box boxA, Box boxB);
 bool checkValid(const vector<Box>& Boxes, Box box);
 
 // Generate multiple boxes with random parameters
-vector<Box> generate_boxes(int total_boxes, int min_radius, int max_radius, int max_box_bounds);
+vector<Box> generate_boxes(int total_boxes, int min_radius, int max_radius, int min_box_bounds, int max_box_bounds);

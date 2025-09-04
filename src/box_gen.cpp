@@ -8,12 +8,8 @@
 #include <algorithm>
 
 
-
-
-
 using namespace std;
 float pi = 3.1415;
-
 
 
 struct Box {
@@ -125,7 +121,7 @@ bool checkValid(vector<Box> Boxes, Box box) {
 
 
 
-vector<Box> generate_boxes(int total_boxes, int min_radius, int max_radius, int max_box_bounds) {
+vector<Box> generate_boxes(int total_boxes, int min_radius, int max_radius, int min_box_bounds, int max_box_bounds) {
     vector<Box> Boxes;
     Boxes.reserve(total_boxes);
     float rand_distance, rand_length, rand_width, rand_angle, rand_orientation_angle; // code for generating random values is from gpt
@@ -139,7 +135,7 @@ vector<Box> generate_boxes(int total_boxes, int min_radius, int max_radius, int 
     // radius: from 1 to max_radius
     uniform_int_distribution<int> dist_radius(min_radius, max_radius);
     // box length/width: from 1 to max_box_bounds
-    uniform_int_distribution<int> dist_bounds(30, max_box_bounds); // 30 is arbitrary. should make it an input.
+    uniform_int_distribution<int> dist_bounds(min_box_bounds, max_box_bounds); 
     // angles: from 0 to 359 degrees
     uniform_int_distribution<int> dist_angle(0, 359);
 

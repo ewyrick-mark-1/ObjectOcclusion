@@ -37,6 +37,30 @@ void calculate_minmax(Box box, array<float, 2> &minmax) {
 
 }
 
+void calculate_wrap_minmax(Box box, array<float, 2> &minmax_below, array<float, 2> &minmax_above) {
+	minmax_below[1] = 360; // statics
+    minmax_above[0] = 0;
+    minmax_below[0] = 180; //initilize for comp
+    minmax_above[1] = 180;
+
+	for (int j = 0; j < 4; j++) { //o1
+		float angle = calculateAngle(box.corners[j]);
+        if(angle > 180){//below
+            if (angle > minmax_below[0]) {
+			minmax_below[0] = angle;
+		    }
+        }else{//above
+            if(angle < minmax_above[1]){
+                minmax_above[1] = angle;
+            }
+        }
+		
+
+	}
+	
+
+}
+
 void merge(vector<array<float, 2>>& box_angles, int l, int m, int r){//basic merge function
     int left_size = m - l +1;
     int right_size = r - m;
@@ -97,15 +121,34 @@ vector<array<float, 2>> calculate_occlusion( vector<Box>& boxes) {
     vector<array<float, 2>> minmax(boxes.size());
     for(int i = 0; i < boxes.size(); i++){
         calculate_minmax(boxes[i], minmax[i]);
+        //wraparound, splits angles into two pairs.
+        if(minmax[i][1] - minmax[i][0] > 180){
+            array<float, 2> minmax_above;
+            array<float, 2> minmax_below;
+            calculate_wrap_minmax(boxes[i], minmax_above, minmax_below);
+
+            minmax.push_back(minmax_below);
+            minmax[i] = minmax_above;
+            
+        }
     }
+    
+    cout<<"OG w/ wrap\n\n";
+    print_overlap(minmax);
     //sort by min angle
     mergesort(minmax, 0, boxes.size() - 1);
-    print_overlap(minmax);
+    cout << "MERGED\n\n";
+    print_overlap(minmax);//just for testing
     //move through linerally and parse into visible / non visible ranges
     vector<array<float, 2>> overlap;
+    
+    
+
+    //overlap check
     float current_min = minmax[0][0];
     float current_max = minmax[0][1];
     for(int i = 1; i < minmax.size(); i++){
+        
         if(minmax[i][0] < current_max){ //overlap
             
             if(minmax[i][1] > current_max){ //partial overlap
