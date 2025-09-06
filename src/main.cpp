@@ -21,7 +21,7 @@ int MIN_DIMENTIONS = 10;
 
 int main() { 
     srand(time(nullptr));
-    cout<< "Entner number of boxes:\n";
+    cout<< "Entner number of boxes. To demo, I reccomend ~50.:\n";
     cin >> NUM_BOXES;
     vector<Box> Boxes = generate_boxes(NUM_BOXES, MIN_RADIUS, MAX_RADIUS - MAX_DIMENTIONS, MIN_DIMENTIONS, MAX_DIMENTIONS);
     vector<array<float, 2>> occluded = calculate_occlusion(Boxes);

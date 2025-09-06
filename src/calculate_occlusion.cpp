@@ -16,7 +16,7 @@ float calculateAngle(float corner[]) {
 	//cout << "corner=(" << corner[0] << "," << corner[1] << ") -> ";
 	float angle = atan2(corner[1], corner[0]) * (180.0 / 3.1415);
 	if (angle < 0) angle += 360.0f;
-	cout << angle << "\n";
+	//cout << angle << "\n";
 	return angle;
 }
 
@@ -37,28 +37,33 @@ void calculate_minmax(Box box, array<float, 2> &minmax) {
 
 }
 
-void calculate_wrap_minmax(Box box, array<float, 2> &minmax_below, array<float, 2> &minmax_above) {
-	minmax_below[1] = 360; // statics
-    minmax_above[0] = 0;
-    minmax_below[0] = 180; //initilize for comp
-    minmax_above[1] = 180;
+void calculate_wrap_minmax(Box box,
+                           array<float, 2>& minmax_below,
+                           array<float, 2>& minmax_above) {
+    // Below = [min_high, 360]
+    // Above = [0, max_low]
 
-	for (int j = 0; j < 4; j++) { //o1
-		float angle = calculateAngle(box.corners[j]);
-        if(angle > 180){//below
-            if (angle > minmax_below[0]) {
-			minmax_below[0] = angle;
-		    }
-        }else{//above
-            if(angle < minmax_above[1]){
-                minmax_above[1] = angle;
-            }
+    float min_high = 360.0f; // smallest angle > 180
+    float max_low  = 0.0f;   // largest angle ≤ 180
+
+    //cout << "wrap was called on: ";
+    //box.printCords();
+
+    for (int j = 0; j < 4; j++) {
+        float angle = calculateAngle(box.corners[j]);
+        if (angle > 180.0f) {
+            if (angle < min_high) min_high = angle;
+        } else {
+            if (angle > max_low) max_low = angle;
         }
-		
+    }
 
-	}
-	
+    // Build intervals
+    minmax_below[0] = min_high;
+    minmax_below[1] = 360.0f;
 
+    minmax_above[0] = 0.0f;
+    minmax_above[1] = max_low;
 }
 
 void merge(vector<array<float, 2>>& box_angles, int l, int m, int r){//basic merge function
@@ -119,13 +124,15 @@ void print_overlap(vector<array<float, 2>>& list){
 vector<array<float, 2>> calculate_occlusion( vector<Box>& boxes) {
     //get vector of min and max angles
     vector<array<float, 2>> minmax(boxes.size());
+    
     for(int i = 0; i < boxes.size(); i++){
         calculate_minmax(boxes[i], minmax[i]);
-        //wraparound, splits angles into two pairs.
+        //wraparound, splits angles into two pairs. one in range [0, 180] and one in range [180, 360].
         if(minmax[i][1] - minmax[i][0] > 180){
+            
             array<float, 2> minmax_above;
             array<float, 2> minmax_below;
-            calculate_wrap_minmax(boxes[i], minmax_above, minmax_below);
+            calculate_wrap_minmax(boxes[i], minmax_below, minmax_above );
 
             minmax.push_back(minmax_below);
             minmax[i] = minmax_above;
@@ -133,39 +140,46 @@ vector<array<float, 2>> calculate_occlusion( vector<Box>& boxes) {
         }
     }
     
-    cout<<"OG w/ wrap\n\n";
-    print_overlap(minmax);
-    //sort by min angle
-    mergesort(minmax, 0, boxes.size() - 1);
-    cout << "MERGED\n\n";
-    print_overlap(minmax);//just for testing
-    //move through linerally and parse into visible / non visible ranges
+    
+    mergesort(minmax, 0, minmax.size() - 1);
+ 
     vector<array<float, 2>> overlap;
     
-    
-
-    //overlap check
-    float current_min = minmax[0][0];
+        //overlap check
     float current_max = minmax[0][1];
-    for(int i = 1; i < minmax.size(); i++){
-        
-        if(minmax[i][0] < current_max){ //overlap
-            
-            if(minmax[i][1] > current_max){ //partial overlap
-                overlap.push_back({minmax[i][0], current_max}); // logs overlap
-                current_min = current_max;
-                current_max = minmax[i][1];
-            } else { //full overlap
-                overlap.push_back({minmax[i][0], minmax[i][1]}); // log overlap
-                current_min = minmax[i][1];//adjust lower bound to prevent double count
-            }
 
-        } else { // no overlap, adjust bounds
-            current_min = minmax[i][0];
-            current_max = minmax[i][1];
+    for (int i = 1; i < minmax.size(); i++) {
+        float next_min = minmax[i][0];
+        float next_max = minmax[i][1];
+
+        if (next_min < current_max) {
+        // intersection region
+            overlap.push_back({next_min, min(current_max, next_max)});
         }
+
+    // always extend current max
+    current_max = max(current_max, next_max);
     }
+    //merge
+        for(int i = 0; i < overlap.size() - 1; i++){
+            float current_min = overlap[i][0];
+            float current_max = overlap[i][1];
+            float next_min = overlap[i+1][0];
+            float next_max = overlap[i+1][1];
+            if (next_min <= current_max){
+                //do merge
+                overlap[i] = {current_min, next_max};
+                overlap.erase(overlap.begin() + i + 1);
+                i--;
+            }
+        }
+    float total = 0.0;
+    for(int i = 0; i < overlap.size(); i++){
+        total += (overlap[i][1] - overlap[i][0]);
+    }
+    cout << "\n\n\n";
     print_overlap(overlap);
+    cout << "total overlap: " << total << "\n";
     return overlap;
 }    
 

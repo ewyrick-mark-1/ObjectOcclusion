@@ -60,7 +60,7 @@ void draw_visuals(const vector<Box> boxes, const vector<array<float, 2>>& occlud
             shape.setPoint(1, {x1 + radius, -y1 + radius});
             shape.setPoint(2, {x2 + radius, -y2 + radius});
 
-            shape.setFillColor(sf::Color(250, 0, 0));
+            shape.setFillColor(sf::Color(250, 0, 0, 128));
 
             window.draw(shape);
         }

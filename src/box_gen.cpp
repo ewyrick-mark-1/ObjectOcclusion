@@ -110,7 +110,7 @@ bool checkValid(vector<Box> Boxes, Box box) {
 
         Box currentBox = Boxes[i];
         if (checkIntersect(currentBox, box)) {
-            cout << "box gen failed.-----------------------------------------------------"<<i<<"---\n";
+            cout << "box gen failed.--------------------------------------------------------\n";
             return false;
         }
     }
@@ -150,7 +150,7 @@ vector<Box> generate_boxes(int total_boxes, int min_radius, int max_radius, int 
         rand_orientation_angle = dist_angle(rng);    // some other reference angle
         Box new_box = Box(rand_distance, rand_length, rand_width, rand_orientation_angle, rand_angle, i);
         if (Boxes.empty() || checkValid(Boxes, new_box)) {
-            cout << rand_distance << ", " << rand_length << ", " << rand_width << ", " << rand_angle << "\n\n";
+            //cout << rand_distance << ", " << rand_length << ", " << rand_width << ", " << rand_angle << "\n\n";
             new_box.id = i;
             Boxes.push_back(new_box);
             cout << "created Box " << i << "\n";
